@@ -1,4 +1,4 @@
-//queryroutes.js
+// queryRoutes.js
 import express from "express";
 import { spawn } from "child_process";
 import path from "path";
@@ -10,14 +10,23 @@ const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Update the Python file path if it's in the 'langchain' folder
+// POST route to handle AI agent query
 router.post("/query", async (req, res) => {
   const userMessage = req.body.message;
+  const userId = req.body.user_id;
 
   // Make sure the path to langchain_agent.py is correct
-  const python = spawn("python3", [path.join(__dirname, "..", "langchain", "langchain_agent.py")]);
+  const python = spawn("python3", [
+    path.join(__dirname, "..", "langchain", "langchain_agent.py"),
+  ]);
 
-  python.stdin.write(JSON.stringify({ message: userMessage }));
+  // ✅ Pass both message and user_id to the Python script
+  python.stdin.write(
+    JSON.stringify({
+      message: userMessage,
+      user_id: userId,
+    })
+  );
   python.stdin.end();
 
   let responseData = "";

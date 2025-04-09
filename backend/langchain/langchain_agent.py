@@ -1,7 +1,6 @@
-# backend/langchain/langchain_agent.py
-
-import sys
+# backend/langchain/langchain_agent.pyimport import sys
 import json
+import sys 
 import os
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -18,7 +17,7 @@ MONGO_URI = os.getenv("MONGO_URI")
 
 # 🔗 Connect to MongoDB
 client = MongoClient(MONGO_URI)
-db = client["orderAi"]  # <-- Replace with your actual DB name
+db = client["orderAi"]
 orders_collection = db["orders"]
 
 # 📦 Fetch order info by order_id and user_id
@@ -26,16 +25,35 @@ def fetch_order_info(order_id: int, user_id: int) -> str:
     print(f"📂 Using DB: {db.name}, Collection: {orders_collection.name}", file=sys.stderr)
     print(f"🔢 Total Orders: {orders_collection.count_documents({})}", file=sys.stderr)
 
-    order = orders_collection.find_one({
-        "order_id": int(order_id),
-        "user_id": int(user_id)
-    })
+    # 🔍 Print all orders for inspection
+    for doc in orders_collection.find():
+        print(f"📄 Order Document: {doc}", file=sys.stderr)
+
+    # 🔧 Ensure inputs are integers
+    try:
+        order_id = int(order_id)
+        user_id = int(user_id)
+    except Exception as e:
+        print(f"⚠️ ID conversion failed: {e}", file=sys.stderr)
+        return f"❌ Invalid order ID or user ID."
+
+    query = {
+        "order_id": order_id,
+        "user_id": user_id
+    }
+    print(f"📦 Query Dict: {query}", file=sys.stderr)
+
+    try:
+        order = orders_collection.find_one(query)
+    except Exception as e:
+        print(f"⚠️ Query error: {e}", file=sys.stderr)
+        order = None
 
     print(f"🧾 Fetched Order: {order}", file=sys.stderr)
 
     if not order:
-        return f"❌ No order found with ID {order_id} for user {user_id}."
-
+        return f"❌ No order found with ID {order_id} for user ."
+    # {user_id}
     status = order.get("status", {})
     delivery_date = status.get("delivery_date")
     expected_date = status.get("expected_delivery_date")
@@ -46,7 +64,6 @@ def fetch_order_info(order_id: int, user_id: int) -> str:
     completed = order.get("completed", False)
     refundable = order.get("refund", {}).get("refundable", False)
 
-    # ✅ Format dates safely
     def fmt(date_val):
         try:
             if isinstance(date_val, str):
@@ -59,10 +76,8 @@ def fetch_order_info(order_id: int, user_id: int) -> str:
             print(f"⚠️ Date format error: {e}", file=sys.stderr)
         return "Not available"
 
-    # 🕒 Compare expected date with today's date
     try:
         now = datetime.now(timezone.utc)
-
         if expected_date:
             if isinstance(expected_date, str):
                 expected = datetime.fromisoformat(expected_date.replace("Z", "+00:00"))
@@ -81,7 +96,7 @@ def fetch_order_info(order_id: int, user_id: int) -> str:
         print(f"⚠️ Date comparison failed: {e}", file=sys.stderr)
 
     return (
-        f"📦 **Order #{order_id}** for user {user_id}:\n"
+        f"📦 **Order #{order_id}**:\n"
         f"- Product: {description}\n"
         f"- Price: ₹{price}\n"
         f"- Completed: {'✅ Yes' if completed else '❌ No'}\n"
@@ -92,38 +107,35 @@ def fetch_order_info(order_id: int, user_id: int) -> str:
     )
 
 # 🧰 Wrapper for LangChain Tool
-def order_tool_wrapper(query: str) -> str:
+def order_tool_wrapper(query: str, default_user_id: int) -> str:
     try:
         parts = query.strip().split()
-        if len(parts) < 2:
-            return "❗ Please provide both order ID and user ID. Example: '5001 101'"
+        if len(parts) < 1:
+            return "❗ Please provide a valid Order ID."
+        
         order_id = int(parts[0])
-        user_id = int(parts[1])
+        user_id = default_user_id
+
+        if len(parts) >= 2:
+            user_id = int(parts[1])
+
         return fetch_order_info(order_id, user_id)
     except Exception as e:
         return f"⚠️ Error parsing input: {str(e)}"
 
 # 🔨 Tool definition
-check_order_status_tool = Tool(
-    name="check_order_status",
-    func=order_tool_wrapper,
-    description="Use this to check order status. Input format: '<order_id> <user_id>'"
-)
+def tool_function_with_user(user_id: int):
+    return Tool(
+        name="check_order_status",
+        func=lambda query: order_tool_wrapper(query, user_id),
+        description="Use this to check order status. Input format: '<order_id>' or '<order_id> <user_id>'"
+    )
 
 # 🧠 Set up LLM with Gemini
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.0-flash",
     google_api_key=GOOGLE_API_KEY,
     temperature=0
-)
-
-# 🧠 Memory and agent setup
-memory = ConversationBufferMemory()
-agent = initialize_agent(
-    tools=[check_order_status_tool],
-    llm=llm,
-    agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    memory=memory
 )
 
 # 🧠 Classify the type of request
@@ -141,20 +153,20 @@ def classify_request(message: str) -> str:
         return "general"
 
 # 🔁 Main function to process input
-def run_agent(user_input: str) -> str:
+def run_agent(user_input: str, user_id: int) -> str:
     request_type = classify_request(user_input)
 
     if request_type == "delivery_query":
         import re
         match = re.findall(r'\d+', user_input)
-        if len(match) >= 2:
-            order_id, user_id = match[0], match[1]
-            return order_tool_wrapper(f"{order_id} {user_id}")
+        if len(match) >= 1:
+            order_id = int(match[0])
+            return order_tool_wrapper(str(order_id), user_id)
         else:
             return (
                 "❗ It seems like you're asking about an order or delivery, "
-                "but I need both the Order ID and User ID to help. "
-                "Example: 'My order 5001 for user 101 is delayed.'"
+                "but I need the Order ID to help. "
+                "Example: 'My order 5001 is delayed.'"
             )
 
     elif request_type == "user_account":
@@ -164,15 +176,28 @@ def run_agent(user_input: str) -> str:
             "If you're still having trouble, our support team can help further."
         )
 
+    memory = ConversationBufferMemory()
+    agent = initialize_agent(
+        tools=[tool_function_with_user(user_id)],
+        llm=llm,
+        agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+        memory=memory
+    )
     return agent.run(user_input)
 
 # 🚀 Entrypoint
 if __name__ == "__main__":
     try:
         input_data = sys.stdin.read()
+        print(f"📨 Received input: {input_data}", file=sys.stderr)
+
         data = json.loads(input_data)
         message = data.get("message", "")
-        result = run_agent(message)
-        print(json.dumps({"response": result}))
+        user_id = int(data.get("user_id", 0))
+
+        result = str(run_agent(message, user_id))
+        print(json.dumps({"response": result}), flush=True)
+
     except Exception as e:
-        print(json.dumps({"error": str(e)}))
+        print(f"💥 Exception occurred: {str(e)}", file=sys.stderr)
+        print(json.dumps({"error": str(e)}), flush=True)
