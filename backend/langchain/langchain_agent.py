@@ -1,8 +1,9 @@
 # backend/langchain/langchain_agent.py
+
 import sys
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
@@ -17,24 +18,19 @@ MONGO_URI = os.getenv("MONGO_URI")
 
 # 🔗 Connect to MongoDB
 client = MongoClient(MONGO_URI)
-
-# ✅ Make sure this is EXACTLY the DB name you use in Atlas
-db = client["orderAi"]  # <-- Replace this with the real DB name
+db = client["orderAi"]  # <-- Replace with your actual DB name
 orders_collection = db["orders"]
 
 # 📦 Fetch order info by order_id and user_id
 def fetch_order_info(order_id: int, user_id: int) -> str:
-    # 🔍 Debug print
     print(f"📂 Using DB: {db.name}, Collection: {orders_collection.name}", file=sys.stderr)
     print(f"🔢 Total Orders: {orders_collection.count_documents({})}", file=sys.stderr)
 
-    # 🔎 Find order
     order = orders_collection.find_one({
         "order_id": int(order_id),
         "user_id": int(user_id)
     })
 
-    # Debug: Print the found order
     print(f"🧾 Fetched Order: {order}", file=sys.stderr)
 
     if not order:
@@ -50,10 +46,39 @@ def fetch_order_info(order_id: int, user_id: int) -> str:
     completed = order.get("completed", False)
     refundable = order.get("refund", {}).get("refundable", False)
 
+    # ✅ Format dates safely
     def fmt(date_val):
-        if isinstance(date_val, str):
-            date_val = datetime.fromisoformat(date_val.replace("Z", "+00:00"))
-        return date_val.strftime("%B %d, %Y") if date_val else "Not available"
+        try:
+            if isinstance(date_val, str):
+                date_val = datetime.fromisoformat(date_val.replace("Z", "+00:00"))
+            if isinstance(date_val, datetime):
+                if date_val.tzinfo is None:
+                    date_val = date_val.replace(tzinfo=timezone.utc)
+                return date_val.strftime("%B %d, %Y")
+        except Exception as e:
+            print(f"⚠️ Date format error: {e}", file=sys.stderr)
+        return "Not available"
+
+    # 🕒 Compare expected date with today's date
+    try:
+        now = datetime.now(timezone.utc)
+
+        if expected_date:
+            if isinstance(expected_date, str):
+                expected = datetime.fromisoformat(expected_date.replace("Z", "+00:00"))
+            elif isinstance(expected_date, datetime):
+                expected = expected_date
+                if expected.tzinfo is None:
+                    expected = expected.replace(tzinfo=timezone.utc)
+
+            if expected < now and not delivery_date:
+                return (
+                    f"🚚 **Order #{order_id}** is delayed due to unforeseen circumstances like rain or logistics issues.\n"
+                    f"- Expected by: {fmt(expected)}\n"
+                    f"- It has not been delivered yet. We're sorry for the inconvenience."
+                )
+    except Exception as e:
+        print(f"⚠️ Date comparison failed: {e}", file=sys.stderr)
 
     return (
         f"📦 **Order #{order_id}** for user {user_id}:\n"
@@ -101,10 +126,47 @@ agent = initialize_agent(
     memory=memory
 )
 
-# 🔁 Main function to process input via stdin
+# 🧠 Classify the type of request
+def classify_request(message: str) -> str:
+    message_lower = message.lower()
+
+    delivery_keywords = ["order", "delivery", "not received", "delayed", "shipped", "dispatch"]
+    account_keywords = ["password", "account", "login", "reset", "sign in", "authentication"]
+
+    if any(word in message_lower for word in delivery_keywords):
+        return "delivery_query"
+    elif any(word in message_lower for word in account_keywords):
+        return "user_account"
+    else:
+        return "general"
+
+# 🔁 Main function to process input
 def run_agent(user_input: str) -> str:
+    request_type = classify_request(user_input)
+
+    if request_type == "delivery_query":
+        import re
+        match = re.findall(r'\d+', user_input)
+        if len(match) >= 2:
+            order_id, user_id = match[0], match[1]
+            return order_tool_wrapper(f"{order_id} {user_id}")
+        else:
+            return (
+                "❗ It seems like you're asking about an order or delivery, "
+                "but I need both the Order ID and User ID to help. "
+                "Example: 'My order 5001 for user 101 is delayed.'"
+            )
+
+    elif request_type == "user_account":
+        return (
+            "🔐 This looks like an account-related issue. "
+            "To reset your password, please go to your account settings. "
+            "If you're still having trouble, our support team can help further."
+        )
+
     return agent.run(user_input)
 
+# 🚀 Entrypoint
 if __name__ == "__main__":
     try:
         input_data = sys.stdin.read()
