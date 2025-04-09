@@ -1,0 +1,6 @@
+langchain==0.3.23
+google-generativeai
+langchain-google-genai
+python-dotenv==1.0.1
+pymongo
+dnspython

@@ -1,0 +1,12 @@
+1)  for generative-ai or langchain module error
+If it still gives ModuleNotFoundError, run:
+
+venv/bin/python -m pip install langchain
+And then immediately:
+
+venv/bin/python -c "import langchain; print('✅ Langchain is installed and working')"
+
+
+2) if gives No module named 'langchain' after request 
+then this always first a virtual environment needed
+(base) parthsaini@Parths-MacBook-Pro-2 backend % source venv/bin/activate
