@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 const Home = () => {
   const navigate = useNavigate();
 
-  const handleStart = () => {
-    navigate('/chat');
+  const handleSignin = () => {
+    navigate('/signin');
   };
 
   const handleSignup = () => {
@@ -20,10 +20,10 @@ const Home = () => {
 
         <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
           <button
-            onClick={handleStart}
+            onClick={handleSignin}
             className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition duration-200"
           >
-            Start Chat
+            Sign In
           </button>
 
           <button
