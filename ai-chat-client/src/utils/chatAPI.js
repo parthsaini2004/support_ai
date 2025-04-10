@@ -5,6 +5,7 @@ export const sendMessageToBackend = async (message) => {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include", 
       body: JSON.stringify({ message }),
     });
 

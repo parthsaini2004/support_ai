@@ -1,8 +1,8 @@
-// queryRoutes.js
 import express from "express";
 import { spawn } from "child_process";
 import path from "path";
 import { fileURLToPath } from "url";
+import authMiddleware from "../middleware/authMiddleware.js"; // Import the auth middleware
 
 const router = express.Router();
 
@@ -10,17 +10,20 @@ const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// POST route to handle AI agent query
-router.post("/query", async (req, res) => {
+// ✅ Updated /query route to send both message and user_id
+router.post("/query", authMiddleware, async (req, res) => {
+  console.log("✅ /query route hit"); 
   const userMessage = req.body.message;
-  const userId = req.body.user_id;
+  const userId = req.user.user_id; // ✅ Extracted from token
 
-  // Make sure the path to langchain_agent.py is correct
+  // ✅ Log to terminal for debugging
+  console.log("🔐 Token decoded, user ID:", userId);
+  console.log("📨 Incoming user message:", userMessage);
+
   const python = spawn("python3", [
     path.join(__dirname, "..", "langchain", "langchain_agent.py"),
   ]);
 
-  // ✅ Pass both message and user_id to the Python script
   python.stdin.write(
     JSON.stringify({
       message: userMessage,
@@ -36,7 +39,7 @@ router.post("/query", async (req, res) => {
   });
 
   python.stderr.on("data", (data) => {
-    console.error(`stderr: ${data}`);
+    console.error(`🐍 Python stderr: ${data}`);
   });
 
   python.on("close", (code) => {
@@ -45,10 +48,12 @@ router.post("/query", async (req, res) => {
       const inner = typeof result === "string" ? JSON.parse(result) : result;
       res.json({ response: inner.response });
     } catch (error) {
-      console.error("Error parsing response:", error);
+      console.error("❌ Error parsing response from Python:", error);
       res.status(500).json({ response: "AI agent failed to respond." });
     }
   });
 });
+
+
 
 export default router;
