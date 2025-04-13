@@ -10,3 +10,6 @@ venv/bin/python -c "import langchain; print('✅ Langchain is installed and work
 2) if gives No module named 'langchain' after request 
 then this always first a virtual environment needed
 (base) parthsaini@Parths-MacBook-Pro-2 backend % source venv/bin/activate
+
+3) in agent run like this :python main.py --pdf data/instructions.pdf --interactive or 
+python main.py --interactive
