@@ -29,7 +29,8 @@ app.use("/api", signupRoutes);    // Handle user signup at /api/signup
 app.use("/api", signinRoutes);    // Handle user signin at /api/signin
 app.use("/api", orderRoutes);
 app.use("/api", userRoutes);
-app.use("/api", queryRoutes);     // /api/query will be protected by auth middleware
+app.use("/api", queryRoutes); 
+
 
 // ✅ Start server
 app.listen(PORT, () => {

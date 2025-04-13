@@ -5,6 +5,7 @@ import User from "../../models/User.js";
 
 const router = express.Router();
 
+// Sign-in route
 router.post("/signin", async (req, res) => {
   const { email, password } = req.body;
 
@@ -28,29 +29,32 @@ router.post("/signin", async (req, res) => {
       return res.status(400).json({ error: "Invalid credentials" });
     }
 
-    // 3. Sign JWT token
+    // 3. Sign JWT token (store user_id in the token)
     const token = jwt.sign(
-      { user_id: user.user_id },
-      process.env.JWT_SECRET || "your_jwt_secret",
-      { expiresIn: "1h" }
+      { user_id: user.user_id },   // Include user_id in the JWT payload
+      process.env.JWT_SECRET || "your_jwt_secret",   // Make sure to set this in your env file
+      { expiresIn: "1h" }  // Token expiration set to 1 hour
     );
 
-    // 4. ✅ Set token in HTTP cookie
+    // 4. Set the token in an HTTP cookie
     res.cookie("token", token, {
-      httpOnly: false,           // if true: not accessible in frontend JS
-      secure: false,             // true in production (HTTPS)
-      sameSite: "Lax",           // allows sending cookies on same-site navigations
-      maxAge: 60 * 60 * 1000,    // 1 hour in milliseconds
+      httpOnly: true,           // Prevent access to the cookie via JS (for security)
+      secure: process.env.NODE_ENV === "production", // Use true in production (HTTPS)
+      sameSite: "Lax",          // Allows sending cookies on same-site navigations
+      maxAge: 60 * 60 * 1000,   // Token expiration: 1 hour
     });
 
-    // 5. ✅ Send token also in response (optional)
+    // 5. Set user_id in response headers
+    res.setHeader("x-user-id", user.user_id);
+
+    // 6. Send token and user data in response (optional)
     res.status(200).json({
       message: "Logged in successfully",
       token,
       user: {
         username: user.username,
         email: user.email,
-        user_id: user.user_id,
+        user_id: user.user_id,  // Include the user_id here
       },
     });
 

@@ -14,24 +14,34 @@ const Signin = () => {
     setError(null);
     setSuccess(null);
 
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL; // Make sure to replace with actual base URL
     const userData = { email, password };
 
     try {
-      const response = await axios.post(`${baseURL}/signin`, userData, {
+      // Send request to backend with email and password
+      const response = await axios.post(`${baseURL}/api/signin`, userData, {
         headers: {
           "Content-Type": "application/json",
         },
-        withCredentials: true
+        withCredentials: true, // Ensure that cookies are included in the request
       });
 
-      const { token } = response.data;
+      const { token, user } = response.data; // Get token and user details from response
+
+      // Store token in localStorage
       localStorage.setItem("token", token);
+
+      // Optionally store user details, like user_id, if you need it
+      localStorage.setItem("user_id", user.user_id);
+
+      // Display success message
       setSuccess("Logged in successfully!");
 
+      // Reset form values
       setEmail("");
       setPassword("");
 
+      // Navigate to the next page (e.g., chat)
       navigate("/chat");
     } catch (err) {
       console.error("Signin error:", err.response?.data || err.message);

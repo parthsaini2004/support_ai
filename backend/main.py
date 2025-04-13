@@ -18,18 +18,27 @@ logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser(description='Agentic AI Customer Support System')
     parser.add_argument('--pdf', type=str, help='Path to instructions PDF file')
-    parser.add_argument('--interactive', action='store_true', help='Run in interactive mode')
+    # parser.add_argument('--interactive', action='store_true', help='Run in interactive mode')
+    parser.add_argument('--user-id', type=str, help='User ID for the session')  # Add this line
+    parser.add_argument('--query', type=str, help='User query for direct response')
+
     args = parser.parse_args()
     
     try:
         # Initialize the response service
         response_service = ResponseService(instructions_pdf_path=args.pdf)
         
-        if args.interactive:
-            run_interactive_mode(response_service)
-        else:
-            # Default to API server mode
-            run_api_server(response_service)
+        # if args.interactive:
+        #     run_interactive_mode(response_service)
+        # else:
+        #     # Default to API server mode
+        #     run_api_server(response_service)
+        if args.user_id and args.query:
+            result = response_service.get_response(args.user_id, args.query)
+            print(result["response"])
+            return 0
+
+
             
     except Exception as e:
         logger.error(f"Error initializing application: {e}")
