@@ -19,7 +19,7 @@ const Signup = () => {
     const userData = { username, email, password };
 
     try {
-      const response = await axios.post(`${baseURL}/signup`, userData);
+      const response = await axios.post(`${baseURL}/api/signup`, userData);
       setSuccess("User created successfully!");
       setUsername("");
       setEmail("");

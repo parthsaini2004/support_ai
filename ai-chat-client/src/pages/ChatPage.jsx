@@ -4,6 +4,7 @@ import InputBox from "../components/InputBox";
 
 const ChatPage = () => {
   const [messages, setMessages] = useState([]);
+  const [thinking, setThinking] = useState(false);
 
   // Define the function inside ChatPage component
   const sendMessageToBackend = async (message) => {
@@ -33,10 +34,24 @@ const ChatPage = () => {
     const userMsg = { sender: "user", text: userMessage };
     setMessages((prev) => [...prev, userMsg]);
 
-    const aiResponse = await sendMessageToBackend(userMessage);
-    const aiMsg = { sender: "ai", text: aiResponse };
+     // Add thinking message
+     const thinkingMsg = { sender: "ai", text: "🤔 Thinking..." };
+     setMessages((prev) => [...prev, thinkingMsg]);
+     setThinking(true);
 
-    setMessages((prev) => [...prev, aiMsg]);
+    const aiResponse = await sendMessageToBackend(userMessage);
+
+    setMessages((prev) => {
+      const updated = [...prev];
+      updated[updated.length - 1] = { sender: "ai", text: aiResponse };
+      return updated;
+    });
+
+    setThinking(false);
+
+    // const aiMsg = { sender: "ai", text: aiResponse };
+
+    // setMessages((prev) => [...prev, aiMsg]);
   };
 
   return (
