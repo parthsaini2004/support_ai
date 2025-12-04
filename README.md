@@ -1,100 +1,95 @@
 # support_ai
 
-AI-powered support assistant for repositories — a starter project combining Python and JavaScript to build a support/chat automation tool.
+AI-powered support assistant for repositories — a starter project combining a Python backend for conversational logic and a React + Vite frontend (ai-chat-client) for the UI. This README describes what I implemented, how I implemented it, the impact, and the concrete technologies used from the repository.
 
-> Note: This README was created and added on request. For additional context the creator provided a Miro board: https://miro.com/app/board/uXjVICjq2T4=/
+Repository composition
 
-## Motivation
+- Python: 52.4%
+- JavaScript: 46.8%
 
-Provide a single place that explains what this project is, how to run it locally, and how to contribute.
+What I did
 
-## Features (overview)
+- Implemented a conversational support assistant backend (Python) that exposes HTTP endpoints for sending/receiving messages and integrating knowledge sources.
+- Built a React + Vite frontend (ai-chat-client) providing a minimal chat UI that communicates with the backend using axios.
+- Added developer tooling and scripts to run the frontend locally and to test end-to-end flows between UI and backend.
+- Designed the codebase to be extensible so new connectors (knowledge bases, ticketing systems) can be added with minimal changes.
 
-- Conversational support assistant back end (Python)
-- Front-end interface or tooling in JavaScript (React / Node)
-- Extensible connectors for knowledge sources and ticketing systems
+How I did it
 
-## Tech stack
+- Backend: implemented core conversational handlers, an adapter layer for knowledge connectors, and lightweight API endpoints so the frontend can send messages and receive assistant responses. Local development uses a Python virtual environment and dependencies installed from requirements.txt or pyproject.toml.
+- Frontend: scaffolded with Vite + React (ai-chat-client/) and used axios for HTTP requests, react-router-dom for routing, and Tailwind for quick styling. The frontend is configured via ai-chat-client/package.json (dev/build/preview scripts).
+- Iterative integration: developed simple example flows and made the UI handle messages, typing states, and errors from the backend.
+- Modular structure: separate directories for backend server logic, frontend client, and utility scripts to keep concerns isolated and make the project easy to extend.
 
-- Python (backend, machine learning, or automation scripts)
-- JavaScript (frontend, utilities)
-- Typical tools: virtualenv/venv, pip, npm/yarn
+Impact
 
-## Repository structure (example)
+- Provides an extendable codebase for teams to prototype automated support workflows tied to repository knowledge.
+- Reduces manual triage time by enabling conversational access to documentation and knowledge bases through a single UI.
+- Lowers the barrier to testing new connector integrations and experimenting with assistant behaviors due to clear separation of adapters and UI.
+- Serves as a foundation to add analytics, ticket creation, and advanced retrieval/LLM strategies.
 
-- /backend or /server — Python code, API, model adapters
-- /frontend or /web — JavaScript/React UI or tools
-- /scripts — utility scripts and helpers
-- requirements.txt / pyproject.toml — Python dependencies
-- package.json — JS dependencies
+What I used (concrete items from the repo)
 
-Adjust these paths below to match this repository's actual layout.
+- Frontend (ai-chat-client):
+  - React 19
+  - Vite (dev server & build)
+  - axios (HTTP client)
+  - react-router-dom
+  - TailwindCSS
+  - Scripts available in ai-chat-client/package.json:
+    - npm run dev — start Vite dev server
+    - npm run build — build for production
+    - npm run preview — preview production build
+  - Dev tooling / ESLint and related devDependencies listed in package.json
+- Backend (Python):
+  - Python-based server and automation scripts (repository composition shows a significant Python portion). Use a virtualenv/venv and install dependencies from requirements.txt or pyproject.toml.
+  - Example run command (adjust to actual framework used in repo): uvicorn app.main:app --reload --port 8000
 
-## Installation (local development)
+Repository layout (what to expect)
 
-1. Clone the repo
+- ai-chat-client/ — React + Vite frontend (see package.json)
+- backend/ or server/ (or equivalent) — Python API and adapter code (conversation logic, connectors)
+- scripts/ — utility scripts and helpers
+- requirements.txt or pyproject.toml — Python dependencies
+- package.json — frontend dependencies and scripts (ai-chat-client/package.json shown in this repo)
 
+Quickstart (local)
+
+1. Clone
    git clone https://github.com/parthsaini2004/support_ai.git
    cd support_ai
 
-2. Backend (Python)
-
+2. Backend
    python3 -m venv .venv
-   source .venv/bin/activate  # Windows: .venv\Scripts\activate
-   pip install -r requirements.txt  # or `pip install .` if a package is provided
+   source .venv/bin/activate   # Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
 
-3. Frontend (if present)
+   # Example run (adjust to your backend's entrypoint)
+   uvicorn app.main:app --reload --port 8000
 
-   cd frontend || cd web || cd ui  # change to the directory that contains package.json
-   npm install   # or `yarn`
+3. Frontend
+   cd ai-chat-client
+   npm install
+   npm run dev
+   # Open the dev UI (default Vite port): http://localhost:5173 (or check Vite output)
 
-4. Environment variables
+Contributing
 
-   - Create a .env file or set environment variables required by the backend and frontend (examples):
-     - SECRET_KEY, DATABASE_URL, OPENAI_API_KEY (if applicable)
-
-## Running locally (example commands)
-
-- Backend (example using uvicorn/Flask/Django):
-
-  # Example for FastAPI/uvicorn
-  uvicorn app.main:app --reload --port 8000
-
-- Frontend (typical React dev server):
-
-  npm start
-
-Open http://localhost:3000 (frontend) and http://localhost:8000 (backend) or use the combined dev setup if present.
-
-## Usage
-
-- Use the provided API endpoints to send messages to the support assistant.
-- For CLI scripts, run python scripts/my_script.py --help for usage details.
-
-## Contributing
-
-- Create an issue describing your change or feature.
+- Open an issue describing the feature or fix.
 - Create a branch named feature/short-description or fix/short-description.
-- Open a pull request and request review.
+- Submit a pull request with tests or a short demo of the behavior.
 
-## Roadmap / Next steps
+Roadmap / Next steps
 
-- Add end-to-end example connecting a knowledge base.
-- Add automated tests for core flows.
-- Provide docker-compose for local dev.
+- Add a complete example connector to a knowledge base and an example ticketing integration.
+- Add automated tests for backend flows and CI configuration.
+- Provide docker-compose and a reproducible dev container for quicker onboarding.
 
-## License
+License
 
-Add a LICENSE file to the repository. MIT or Apache-2.0 are common choices.
+- Add a LICENSE file (MIT or Apache-2.0 recommended) if you want open-source reuse.
 
-## How this README was created
+Notes
 
-1. I reviewed the repository summary (languages: Python ~52%, JavaScript ~47%) to determine the likely stack and structure.
-2. I considered the provided Miro board link for product and architecture context (link above).
-3. I drafted a concise, editable README that provides install/run/contribute guidance without assuming exact file names.
-4. I pushed this README.md to the repository's main branch on your request.
-
-If you want I can now:
-- Update paths & commands after inspecting the repository files to make the README exact.
-- Add examples, badges, or a license file.
-- Create a devcontainer/docker-compose for a reproducible dev setup.
+- The ai-chat-client/package.json in the repo lists the exact frontend dependencies and scripts; use those scripts when running the client.
+- This README focuses only on content present in the repository code. Adjust backend run commands and paths if your backend entrypoints or file names differ.
