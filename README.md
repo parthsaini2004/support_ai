@@ -1,11 +1,6 @@
 # support_ai
 
-AI-powered support assistant for repositories — a starter project combining a Python backend for conversational logic and a React + Vite frontend (ai-chat-client) for the UI. This README describes what I implemented, how I implemented it, the impact, and the concrete technologies used from the repository.
-
-Repository composition
-
-- Python: 52.4%
-- JavaScript: 46.8%
+AI-powered support assistant for repositories — a starter project combining a Python backend for conversational logic and a React + Vite frontend (ai-chat-client) for the UI.
 
 What I did
 
@@ -42,42 +37,7 @@ What I used (concrete items from the repo)
     - npm run preview — preview production build
   - Dev tooling / ESLint and related devDependencies listed in package.json
 - Backend (Python):
-  - Python-based server and automation scripts (repository composition shows a significant Python portion). Use a virtualenv/venv and install dependencies from requirements.txt or pyproject.toml.
-  - Example run command (adjust to actual framework used in repo): uvicorn app.main:app --reload --port 8000
-
-Repository layout (what to expect)
-
-- ai-chat-client/ — React + Vite frontend (see package.json)
-- backend/ or server/ (or equivalent) — Python API and adapter code (conversation logic, connectors)
-- scripts/ — utility scripts and helpers
-- requirements.txt or pyproject.toml — Python dependencies
-- package.json — frontend dependencies and scripts (ai-chat-client/package.json shown in this repo)
-
-Quickstart (local)
-
-1. Clone
-   git clone https://github.com/parthsaini2004/support_ai.git
-   cd support_ai
-
-2. Backend
-   python3 -m venv .venv
-   source .venv/bin/activate   # Windows: .venv\Scripts\activate
-   pip install -r requirements.txt
-
-   # Example run (adjust to your backend's entrypoint)
-   uvicorn app.main:app --reload --port 8000
-
-3. Frontend
-   cd ai-chat-client
-   npm install
-   npm run dev
-   # Open the dev UI (default Vite port): http://localhost:5173 (or check Vite output)
-
-Contributing
-
-- Open an issue describing the feature or fix.
-- Create a branch named feature/short-description or fix/short-description.
-- Submit a pull request with tests or a short demo of the behavior.
+  - Python-based server and automation scripts (repository composition shows a significant Python portion). Use a virtualenv/venv and install dependencies from requirements.txt 
 
 Roadmap / Next steps
 
@@ -85,11 +45,3 @@ Roadmap / Next steps
 - Add automated tests for backend flows and CI configuration.
 - Provide docker-compose and a reproducible dev container for quicker onboarding.
 
-License
-
-- Add a LICENSE file (MIT or Apache-2.0 recommended) if you want open-source reuse.
-
-Notes
-
-- The ai-chat-client/package.json in the repo lists the exact frontend dependencies and scripts; use those scripts when running the client.
-- This README focuses only on content present in the repository code. Adjust backend run commands and paths if your backend entrypoints or file names differ.
